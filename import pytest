@@ -1,0 +1,58 @@
+import pytest
+import os
+from app import read_students_from_md, find_student
+
+class TestStudentData:
+    """Тесты для работы с данными студентов"""
+    
+    def test_read_students_with_new_metrics(self):
+        """Тест чтения студентов с новыми метриками"""
+        students = read_students_from_md('students.md')
+        
+        assert len(students) > 0
+        student = students[0]
+        
+        # Проверяем наличие всех новых полей
+        assert 'full_name' in student
+        assert 'group' in student
+        assert 'college' in student
+        assert 'admission_year' in student
+        assert 'course' in student
+        
+        # Проверяем типы данных
+        assert isinstance(student['full_name'], str)
+        assert isinstance(student['group'], str)
+        assert isinstance(student['college'], str)
+        assert isinstance(student['admission_year'], int)
+        assert isinstance(student['course'], int)
+    
+    def test_find_student_by_full_name(self):
+        """Тест поиска студента по ФИО"""
+        test_students = [
+            {
+                'full_name': 'Иванов Иван Иванович',
+                'group': 'ТВ-101',
+                'college': 'Технический колледж',
+                'admission_year': 2023,
+                'course': 2
+            }
+        ]
+        
+        student = find_student(test_students, 'Иванов Иван Иванович')
+        assert student is not None
+        assert student['group'] == 'ТВ-101'
+        assert student['college'] == 'Технический колледж'
+    
+    def test_student_metrics_validation(self):
+        """Тест валидности метрик студентов"""
+        students = read_students_from_md('students.md')
+        
+        for student in students:
+            # Проверяем корректность года поступления
+            assert 2000 <= student['admission_year'] <= 2024
+            # Проверяем корректность курса
+            assert 1 <= student['course'] <= 6
+            # Проверяем, что все поля заполнены
+            assert student['full_name'] != ''
+            assert student['group'] != ''
+            assert student['college'] != ''
