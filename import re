@@ -1,0 +1,42 @@
+import re
+
+def read_students_from_md(filename):
+    """
+    Чтение данных студентов из markdown файла с новыми метриками
+    Возвращает список словарей с информацией о студентах
+    """
+    students = []
+    try:
+        with open(filename, 'r', encoding='utf-8') as file:
+            content = file.read()
+            
+        # Регулярное выражение для поиска строк таблицы с новыми полями
+        table_pattern = r'\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{4})\s*\|\s*(\d+)\s*\|'
+        matches = re.findall(table_pattern, content)
+        
+        for match in matches:
+            full_name, group, college, admission_year, course = match
+            if full_name.lower() != 'фио':  # Пропускаем заголовок
+                students.append({
+                    'full_name': full_name.strip(),
+                    'group': group.strip(),
+                    'college': college.strip(),
+                    'admission_year': int(admission_year),
+                    'course': int(course)
+                })
+                
+    except FileNotFoundError:
+        print(f"Ошибка: Файл {filename} не найден")
+    except Exception as e:
+        print(f"Ошибка при чтении файла: {e}")
+        
+    return students
+
+def find_student(students, full_name):
+    """
+    Поиск студента по ФИО (регистронезависимый)
+    """
+    for student in students:
+        if student['full_name'].lower() == full_name.lower():
+            return student
+    return None
