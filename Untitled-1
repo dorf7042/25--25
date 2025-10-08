@@ -1,0 +1,50 @@
+class TestIntegration:
+    """Интеграционные тесты всего приложения"""
+    
+    def test_complete_student_workflow(self):
+        """Тест полного workflow приложения"""
+        from app import read_students_from_md, find_student, generate_greeting
+        
+        # Чтение данных
+        students = read_students_from_md('students.md')
+        assert len(students) > 0
+        
+        # Поиск существующего студента
+        if students:
+            existing_student = find_student(students, students[0]['full_name'])
+            assert existing_student is not None
+            
+            # Генерация приветствия
+            greeting = generate_greeting(existing_student)
+            assert existing_student['full_name'] in greeting
+    
+    def test_data_consistency(self):
+        """Тест согласованности данных"""
+        students = read_students_from_md('students.md')
+        
+        for student in students:
+            # Проверяем, что курс соответствует году поступления
+            expected_min_course = 2024 - student['admission_year'] + 1
+            # Допускаем погрешность в 1 курс
+            assert abs(student['course'] - expected_min_course) <= 1
+    
+    def test_file_modification_integration(self):
+        """Тест интеграции с файловой системой"""
+        import tempfile
+        import os
+        from app import read_students_from_md
+        
+        # Создаем временный файл для тестирования
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:
+            f.write("""# Test Students
+| ФИО | Группа | Колледж | Год поступления | Курс |
+|-----|--------|---------|-----------------|------|
+| Тест Студент | Т-001 | Тест колледж | 2023 | 2 |""")
+            temp_filename = f.name
+        
+        try:
+            students = read_students_from_md(temp_filename)
+            assert len(students) == 1
+            assert students[0]['full_name'] == 'Тест Студент'
+        finally:
+            os.unlink(temp_filename)
